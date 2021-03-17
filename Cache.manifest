@@ -1,0 +1,23 @@
+CACHE MANIFEST
+# random: f447f1127d18d3775b82c78cabbbc1bc
+
+CACHE:
+/blob.js
+/payload.html
+/webkit-7.50/external/ps4.js
+/webkit-7.50/external/utils.js
+/webkit-7.50/external/int64.js
+/netcat.js
+/jb.js
+/src
+/src/jb.c
+/src/fixup.rop
+/mira
+/mira/mira.js
+/mira/mira2.js
+/ftp.js
+/README.txt
+/index.html
+
+NETWORK:
+*

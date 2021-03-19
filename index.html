@@ -1,4 +1,4 @@
-<html>
+<html manifest="Cache.manifest">
 
 <head>
     <meta charset="utf-8" />
@@ -6,6 +6,22 @@
     <link rel="shortcut icon" href="favicon.ico"></link>
 </head>   
 <body>
+	<script>
+window.applicationCache.ondownloading = function()
+{
+	alert("Caching started !!")
+};
+
+window.applicationCache.onprogress = function(a)
+{
+	document.getElementById("progress").innerHTML="<h3>Caching Status: "+(Math.round(100*(a.loaded/a.total)))+"% Completed</h3>";
+};
+
+window.applicationCache.oncached = window.applicationCache.onupdateready = function()
+{
+	alert("Page Cached!!")
+};
+</script>
     <script>
         // Init on English Language
         changeLanguage('english')
@@ -77,6 +93,7 @@
                 никуда не денешься, разве что и дальше ждать взлом от @SpecterDev.</i></p>
         <p><i>Credits: Synacktiv &mdash; эксплоит WebKit, @theflow &mdash; уязвимость ядра и подсказки, &lt;аноним&gt; &mdash; дампы ядер 7.5X</i></p>
     </div>
+    <div id="progress"></div>
 
 <a href="payload.html#p0=mira/mira.js&p1=mira/mira2.js">JB+MIRA</a>
 <!-- not yet -->

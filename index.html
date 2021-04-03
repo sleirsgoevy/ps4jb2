@@ -64,7 +64,7 @@ window.applicationCache.oncached = window.applicationCache.onupdateready = funct
         </ol>
         <p><i>This exploit <b>does</b> crash and hang. Sometimes you even have to retry 10 times to get the
                 jailbreak.</i></p>
-        <p><i>Credits: Synacktiv team for the WebKit exploit, @theflow for vulnerability disclosure & hints, &lt;anonymous&gt; for 7.5X kernel dump</i></p>
+        <p><i>Credits: Synacktiv team for the WebKit exploit, @theflow for vulnerability disclosure & hints, &lt;anonymous&gt; for 7.5X kernel dump, @codedwrench for ps4-kexec (Linux loader) kernel offsets</i></p>
     </div>
     <div id="russian" class="language" style="display: none">
         <h3>ВНИМАТЕЛЬНО ПРОЧИТАЙТЕ ИНСТРУКЦИЮ ПРЕЖДЕ ЧЕМ ПРОДОЛЖАТЬ</h3>
@@ -91,16 +91,16 @@ window.applicationCache.oncached = window.applicationCache.onupdateready = funct
         </ol>
         <p><i>Эксплойт <b>будет</b> крашиться и виснуть, иногда вообще только с 10 попытки заводится. Тут пока что
                 никуда не денешься, разве что и дальше ждать взлом от @SpecterDev.</i></p>
-        <p><i>Credits: Synacktiv &mdash; эксплоит WebKit, @theflow &mdash; уязвимость ядра и подсказки, &lt;аноним&gt; &mdash; дампы ядер 7.5X</i></p>
+        <p><i>Credits: Synacktiv &mdash; эксплоит WebKit, @theflow &mdash; уязвимость ядра и подсказки, &lt;аноним&gt; &mdash; дампы ядер 7.5X, @codedwrench &mdash; смещения ядра для загрузчика Linux</i></p>
     </div>
     <div id="progress"></div>
 
 <a href="payload.html#p0=mira/mira.js&p1=mira/mira2.js">JB+MIRA</a>
 <!-- not yet -->
 <!--<a href="payload.html#p0=mira/mira.js&p1=ps4-hen-vtx.js">JB+HEN</a>-->
-<!--<a href="payload.html#p0=mira/mira.js&p1=linux.js">JB+LINUX (VRAM 1GB)</a>-->
-<!--<a href="payload.html#p0=mira/mira.js&p1=linux-3gb.js">JB+LINUX (VRAM 3GB)</a>-->
 <!-- /not yet -->
+<a href="payload.html#p0=mira/mira.js&p1=linux/1gb.js">JB+LINUX (VRAM 1GB)</a>
+<a href="payload.html#p0=mira/mira.js&p1=linux/3gb.js">JB+LINUX (VRAM 3GB)</a>
 <a href="payload.html#p0=mira/mira.js&p1=ftp.js">JB+FTP</a>
 <a href="payload.html">JB+NETCAT (LEGACY)</a>
 <a href="payload.html#p0=mira/mira.js">JB+NETCAT</a>

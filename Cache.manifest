@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# random: 10bc7db68c554341d6f29a904294b30c
+# random: abc7a866fce6fb32cb54b9eead646cc3
 
 CACHE:
 blob.js
@@ -13,6 +13,8 @@ mira/mira.js
 mira/mira2.js
 ftp.js
 index.html
+linux/1gb.js
+linux/3gb.js
 
 NETWORK:
 *

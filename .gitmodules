@@ -1,3 +1,6 @@
 [submodule "webkit-7.50"]
 	path = webkit-7.50
 	url = https://github.com/sleirsgoevy/bad_hoist
+[submodule "src/8cc"]
+	path = src/8cc
+	url = https://github.com/sleirsgoevy/ps4-rop-8cc

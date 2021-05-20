@@ -42,93 +42,96 @@ dq 0
 #r8 = fd_ofiles
 _kernel_fixup:
 # fix fds
-pop rax
-dp ret1
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret1:
-pop rax
-dp ret2
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret2:
-pop rax
-dp ret3
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret3:
-pop rax
-dp ret4
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret4:
-pop rax
-dp ret5
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret5:
-pop rax
-dp ret6
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret6:
-pop rax
-dp ret7
-pop rsi
-dp fixup_ret
-mov [rsi], rax ; mov al, 1
-mov eax, [rdi]
-pop rsi
-dq -4
-sub rdi, rsi ; mov rdx, rdi
-pop rsp
-dp fix_fd
-ret7:
+#pop rax
+#dp ret1
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret1:
+#pop rax
+#dp ret2
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret2:
+#pop rax
+#dp ret3
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret3:
+#pop rax
+#dp ret4
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret4:
+#pop rax
+#dp ret5
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret5:
+#pop rax
+#dp ret6
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret6:
+#pop rax
+#dp ret7
+#pop rsi
+#dp fixup_ret
+#mov [rsi], rax ; mov al, 1
+#mov eax, [rdi]
+#pop rsi
+#dq -4
+#sub rdi, rsi ; mov rdx, rdi
+#pop rsp
+#dp fix_fd
+#ret7:
 
 #fix fucked up fd
 mov eax, [rdi]
+pop rcx
+dq -1
+mov [rdi], ecx
 shl rax, 3
 pop rsi
 dp fuckup_fd

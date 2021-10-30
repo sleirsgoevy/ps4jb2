@@ -1,0 +1,24 @@
+CACHE MANIFEST
+# random: 8fdd67e6241c8fc489f1e4b530292fd4
+
+CACHE:
+index.html
+payload.html
+common/exploit.js
+common/helpers.js
+common/malloc.js
+common/rop.js
+common/syscalls.js
+common/syscalls2.jsfakeusb.js
+jb.js
+netcat.js
+mira/mira.js
+mira/mira2.js
+ps4-hen-vtx.js
+ftp.js
+fakeusb.js
+linux/1gb.js
+linux/3gb.js
+
+NETWORK:
+*

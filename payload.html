@@ -1,0 +1,59 @@
+<html>
+<body onload="go()">
+<script>
+if(document.cookie.indexOf('kex=0') >= 0)
+    document.location.href = '.';
+</script>
+<script>
+function print(){}
+</script>
+<script src="common/exploit.js"></script>
+<script src="common/helpers.js"></script>
+<script src="common/malloc.js"></script>
+<script src="common/rop.js"></script>
+<script src="common/syscalls.js"></script>
+<script src="common/syscalls2.js"></script>
+<script src="jb.js"></script>
+<script>
+function getHashParams()
+{
+    var ans = {};
+    var p = document.location.hash.substr(1).split("&");
+    for(var i = 0; i < p.length; i++)
+    {
+        var kv = p[i].split('=');
+        var k = kv.shift();
+        ans[k] = decodeURIComponent(kv.join('='));
+    }
+    return ans;
+}
+
+function loadScript(path)
+{
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path, false);
+    xhr.send('');
+    eval.call(window, xhr.responseText);
+}
+
+(function()
+{
+    var hp = getHashParams();
+    if('p0' in hp)
+        loadScript(hp['p0']);
+    if('p1' in hp)
+        loadScript(hp['p1']);
+})();
+</script>
+<script src="netcat.js"></script>
+<script>
+if(main_ret == 179 /* already hacked */ || main_ret == 0 /* success */)
+{
+    alert("You're all set!");
+    read_ptr_at(0);
+}
+else
+    alert("Jailbreak failed! Reboot your PS4 and try again.");
+</script>
+</body>
+</html>

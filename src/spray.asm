@@ -8,8 +8,6 @@ syscall
 ret
 
 kernel_entry:
-xor eax, eax
-ret
 push rbp
 push qword [rsi+8] ; kernel base
 mov rcx, 1024

@@ -1,3 +1,6 @@
 [submodule "75x"]
 	path = 75x
 	url = https://github.com/sleirsgoevy/ps4jb2/
+[submodule "672"]
+	path = 672
+	url = https://github.com/sleirsgoevy/ps4jb2/

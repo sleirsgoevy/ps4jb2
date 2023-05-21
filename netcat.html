@@ -1,0 +1,53 @@
+<html>
+<body>
+<script>function print(){}</script>
+<script>
+var cachedJS = {};
+
+function runJS(path)
+{
+    if(!(path in cachedJS))
+    {
+        var xxx = new XMLHttpRequest();
+        xxx.open("GET", path, false);
+        xxx.send('');
+        cachedJS[path] = xxx.responseText;
+    }
+    eval.call(window, cachedJS[path]);
+}
+
+function c_code_done(printf_ans, main_ret)
+{
+    if(main_ret)
+        alert("Jailbreak failed! Reboot your PS5 and try again!\n"+printf_ans+"\nmain() returned "+main_ret);
+    else
+        alert("You're all set!\n"+printf_ans);
+    window.sigsegv_handler = 0;
+    runJS('sigsegv.js');
+    read_ptr_at(0);
+}
+
+function runScripts()
+{
+    runJS('exploit.js');
+    runJS('malloc.js');
+    runJS('rop.js');
+    runJS('syscalls.js');
+    runJS('syscalls2.js');
+    window.sigsegv_handler = infloop_addr;
+    runJS('sigsegv.js');
+    runJS('c-code.js');
+}
+
+var blob = new Blob(['self.onmessage = function() { postMessage(1); }'], {'type': 'text/javascript'});
+var url = URL.createObjectURL(blob);
+the_worker = new Worker(url);
+the_worker.onmessage = function()
+{
+    setTimeout(runScripts, 0);
+    runScripts = function(){};
+}
+the_worker.postMessage(1);
+</script>
+</body>
+</html>

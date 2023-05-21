@@ -1,0 +1,16 @@
+CACHE MANIFEST
+# random: e2bab33873fafb8a8465c3654c16ce57
+
+CACHE:
+c-code.js
+exploit.js
+index.html
+malloc.js
+netcat.html
+rop.js
+sigsegv.js
+syscalls2.js
+syscalls.js
+
+NETWORK:
+*

@@ -1,0 +1,88 @@
+<html manifest="Cache.manifest">
+
+<head>
+    <meta charset="utf-8" />
+    <title>PS5 4.03 Kernel Exploit</title>
+    <link rel="shortcut icon" href="favicon.ico"></link>
+</head>   
+<body>
+	<script>
+if(!document.location.href.endswith("/index.html"))
+    document.location.href = "index.html";
+
+window.applicationCache.ondownloading = function()
+{
+	alert("Caching started !!")
+};
+
+window.applicationCache.onprogress = function(a)
+{
+	document.getElementById("progress").innerHTML="<h3>Caching Status: "+(Math.round(100*(a.loaded/a.total)))+"% Completed</h3>";
+};
+
+window.applicationCache.oncached = window.applicationCache.onupdateready = function()
+{
+	alert("Page Cached!!")
+};
+</script>
+    <script>
+        // Init on English Language
+        changeLanguage('english')
+
+        function changeLanguage(lang) {
+            Array.from(document.querySelectorAll('.language')).map( element => {
+                element.style.display = 'none'
+            });
+            if (document.getElementById(lang)) {
+                document.getElementById(lang).style.display = 'block';
+            }
+        }
+    </script>
+    <p>
+        <a href="#" onclick="changeLanguage('english'); return false">English</a>
+        <a href="#" onclick="changeLanguage('russian'); return false">Русский</a>
+    </p>
+    <div id="english" class="language" style="display: block">
+        <h3>READ THIS CAREFULLY BEFORE PROCEEDING</h3>
+        <p><b>This exploit loads payloads in PLD (.bin) format on PS5 firmware 4.03. Other firmwares and payload formats are NOT supported.</b></p>
+        <ol>
+            <li>Click on the link that says JB+NETCAT. In about 20 seconds you'll get a popup saying
+                "waiting for payloads". This means that everything has gone well.
+                You can then send your payload to TCP port 9019.<br />
+                If something went wrong during the process, you may get an alert saying "Jailbreak failed! Reboot your
+                PS5 and try again.". In this case you must reboot your PS5, preferrably without closing the dialog
+                box.<br />
+                If the system hangs for more than a minute (may require more time on slow Internet connections), reboot
+                your PS5 and try again.<br />
+                If the system crashes (looks like instant powerdown), press the power button on the PS5 (NOT on the
+                gamepad) until it turns on again, then retry.
+            </li>
+        </ol>
+        <p><i>This exploit <b>does</b> crash and hang. Sometimes you even have to retry 10 times to get the
+                jailbreak.</i></p>
+        <p><i>Credits: @theflow for vulnerability disclosure, @ChendoChap for userland CFI bypass, @SpecterDev & @ChendoChap for various help</i></p>
+    </div>
+    <div id="russian" class="language" style="display: none">
+        <h3>ВНИМАТЕЛЬНО ПРОЧИТАЙТЕ ИНСТРУКЦИЮ ПРЕЖДЕ ЧЕМ ПРОДОЛЖАТЬ</h3>
+        <p><b>Этот эксплоит загружает пейлоады в формате PLD (.bin) на PS5 с прошивкой 4.03. Другие прошивки и форматы НЕ поддерживаются.</b></p>
+        <ol>
+            <li>Нажмите на ссылку &laquo;JB+NETCAT&raquo;. В течение примерно 20 секунд появится уведомление
+                &laquo;waiting for payloads&raquo;. Это значит, что взлом сработал, и вы можете послать
+                пейлоад на TCP-порт 9019.<br />
+                Если что-то пошло не так, может вылететь ошибка &laquo;Jailbreak failed! Reboot your PS5 and try
+                again.&raquo;. В этом случае необходимо, не закрывая окно, перезагрузить консоль.<br />
+                Если взлом занимает больше минуты, и у вас адекватное интернет-соединение, скорее всего он повис.
+                Перезагрузите приставку и попробуйте еще раз.<br />
+                Если система крашится (выглядит как мгновенное выключение), нажимайте кнопку включения на ПРИСТАВКЕ (НЕ
+                НА КОНТРОЛЛЕРЕ), пока она не включится, после чего повторите взлом.
+            </li>
+        </ol>
+        <p><i>Эксплойт <b>будет</b> крашиться и виснуть, иногда вообще только с 10 попытки заводится.</i></p>
+        <p><i>Credits: @theflow &mdash; уязвимость ядра, @ChendoChap &mdash; обход CFI в пользовательском пространстве, @SpecterDev и @ChendoChap &mdash; помощь по различным вопросам</i></p>
+    </div>
+    <div id="progress"></div>
+
+<a href="netcat.html">JB+NETCAT</a>
+</body>
+
+</html>

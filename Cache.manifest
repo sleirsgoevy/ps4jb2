@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# random: ee9328bd806628e0c1c25c2904b2b549
+# random: c8044f88a55b2cc91fb39da3075099e5
 
 CACHE:
 index.html
@@ -13,6 +13,7 @@ common/syscalls2.js
 fakeusb.js
 jb.js
 netcat.js
+ghen2b2.js
 mira/mira.js
 mira/mira2.js
 ps4-hen-vtx.js

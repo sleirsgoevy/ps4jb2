@@ -37,13 +37,14 @@ void* sender_thread(void* _)
 
 int main()
 {
+    int mira_blob_len = __builtin_gadget_addr("$(window.mira_blob_len||0)");
     if(setuid(0))
         return 1; //jailbreak failed or not run yet
-    char* mapping = mmap(NULL, 131072, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    char* mapping = mmap(NULL, mira_blob_len, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     char* mira_blob = __builtin_gadget_addr("$(window.mira_blob||0)");
-    if(mira_blob)
+    if(mira_blob_len)
     {
-        for(int i = 0; i < 131072; i++)
+        for(int i = 0; i < mira_blob_len; i++)
             mapping[i] = mira_blob[i];
     }
     else

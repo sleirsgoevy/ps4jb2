@@ -4,3 +4,6 @@
 [submodule "672"]
 	path = 672
 	url = https://github.com/sleirsgoevy/ps4jb2/
+[submodule "ps5-403"]
+	path = ps5-403
+	url = https://github.com/sleirsgoevy/ps4jb2/

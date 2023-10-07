@@ -30,6 +30,7 @@ function c_code_done(printf_ans, main_ret)
 function runScripts()
 {
     runJS('exploit.js');
+    document.body.setAttribute('bgColor', 'green');
     runJS('malloc.js');
     runJS('rop.js');
     runJS('syscalls.js');
@@ -39,13 +40,28 @@ function runScripts()
     runJS('c-code.js');
 }
 
+function main()
+{
+    if(!document.location.hash.startsWith("#payload="))
+        return runScripts();
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'arraybuffer';
+    xhr.open('GET', decodeURIComponent(document.location.hash.substr(9)), true);
+    xhr.send('');
+    xhr.onload = function()
+    {
+        window.payload = new Uint8Array(xhr.response);
+        runScripts();
+    };
+}
+
 var blob = new Blob(['self.onmessage = function() { postMessage(1); }'], {'type': 'text/javascript'});
 var url = URL.createObjectURL(blob);
 the_worker = new Worker(url);
 the_worker.onmessage = function()
 {
-    setTimeout(runScripts, 0);
-    runScripts = function(){};
+    setTimeout(main, 0);
+    main = function(){};
 }
 the_worker.postMessage(1);
 </script>

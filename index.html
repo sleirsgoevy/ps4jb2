@@ -7,9 +7,6 @@
 </head>   
 <body>
 	<script>
-if(!document.location.href.endswith("/index.html"))
-    document.location.href = "index.html";
-
 window.applicationCache.ondownloading = function()
 {
 	alert("Caching started !!")
@@ -23,7 +20,11 @@ window.applicationCache.onprogress = function(a)
 window.applicationCache.oncached = window.applicationCache.onupdateready = function()
 {
 	alert("Page Cached!!")
+    document.location.href = document.location.href;
 };
+
+if(!document.location.href.endswith("/index.html"))
+    document.location.href = "index.html";
 </script>
     <script>
         // Init on English Language

@@ -46,6 +46,7 @@ if(!document.location.href.endswith("/index.html"))
     <div id="english" class="language" style="display: block">
         <h3>READ THIS CAREFULLY BEFORE PROCEEDING</h3>
         <p><b>This exploit loads payloads in PLD (.bin) format on PS5 firmware 4.03. Other firmwares and payload formats are NOT supported.</b></p>
+        <p><i>ps5-kstuff is supported on 4.03 and 4.50, <a href="ps5-kstuff.bin">download it</a> and use another host if you are on 4.50.</i></p>
         <ol>
             <li>Click on the link that says JB+NETCAT. In about 20 seconds you'll get a popup saying
                 "waiting for payloads". This means that everything has gone well.
@@ -64,11 +65,13 @@ if(!document.location.href.endswith("/index.html"))
         </ol>
         <p><i>This exploit <b>does</b> crash and hang. Sometimes you even have to retry 10 times to get the
                 jailbreak.</i></p>
-        <p><i>Credits: @theflow for vulnerability disclosure, @ChendoChap for userland CFI bypass, @SpecterDev & @ChendoChap for various help</i></p>
+        <p><i>Credits: @theflow for vulnerability disclosure, @ChendoChap for userland CFI bypass, @SpecterDev & @ChendoChap for various help,
+            @cheburek3000 for the physmem access technique & 4.50 offsets.</i></p>
     </div>
     <div id="russian" class="language" style="display: none">
         <h3>ВНИМАТЕЛЬНО ПРОЧИТАЙТЕ ИНСТРУКЦИЮ ПРЕЖДЕ ЧЕМ ПРОДОЛЖАТЬ</h3>
         <p><b>Этот эксплоит загружает пейлоады в формате PLD (.bin) на PS5 с прошивкой 4.03. Другие прошивки и форматы НЕ поддерживаются.</b></p>
+        <p><i>ps5-kstuff поддерживает прошивки 4.03 и 4.50. Если у вас прошивка 4.50, <a href="ps5-kstuff.bin">скачайте пейлоад</a> и используйте другой хост.</i></p>
         <ol>
             <li>Нажмите на ссылку &laquo;JB+NETCAT&raquo;. В течение примерно 20 секунд появится уведомление
                 &laquo;waiting for payloads&raquo;. Это значит, что взлом сработал, и вы можете послать
@@ -85,7 +88,8 @@ if(!document.location.href.endswith("/index.html"))
                 не будут. Файл пейлоада для ручной отправки можно скачать <a href="ps5-kstuff.bin">здесь</a>.</li>
         </ol>
         <p><i>Эксплойт <b>будет</b> крашиться и виснуть, иногда вообще только с 10 попытки заводится.</i></p>
-        <p><i>Credits: @theflow &mdash; уязвимость ядра, @ChendoChap &mdash; обход CFI в пользовательском пространстве, @SpecterDev и @ChendoChap &mdash; помощь по различным вопросам</i></p>
+        <p><i>Credits: @theflow &mdash; уязвимость ядра, @ChendoChap &mdash; обход CFI в пользовательском пространстве,
+            @SpecterDev и @ChendoChap &mdash; помощь по различным вопросам, @cheburek3000 &mdash; техника доступа к физической памяти и оффсеты для 4.50.</i></p>
     </div>
     <div id="progress"></div>
 

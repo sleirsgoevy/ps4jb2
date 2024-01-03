@@ -39,6 +39,15 @@ if(!document.location.href.endswith("/index.html"))
             }
         }
     </script>
+    <style>
+        ul, input {
+            display: none;
+        }
+
+        input:checked + ul {
+            display: block;
+        }
+    </style>
     <p>
         <a href="#" onclick="changeLanguage('english'); return false">English</a>
         <a href="#" onclick="changeLanguage('russian'); return false">Русский</a>
@@ -46,7 +55,7 @@ if(!document.location.href.endswith("/index.html"))
     <div id="english" class="language" style="display: block">
         <h3>READ THIS CAREFULLY BEFORE PROCEEDING</h3>
         <p><b>This exploit loads payloads in PLD (.bin) format on PS5 firmware 4.03. Other firmwares and payload formats are NOT supported.</b></p>
-        <p><i>ps5-kstuff is supported on 4.03 and 4.50, <a href="ps5-kstuff.bin">download it</a> and use another host if you are on 4.50.</i></p>
+        <p><i>ps5-kstuff is supported on 3.00, 3.20, 3.21, 4.03, 4.50, 4.51, <a href="ps5-kstuff.bin">download it</a> and use another host if you are not on 4.03.</i></p>
         <ol>
             <li>Click on the link that says JB+NETCAT. In about 20 seconds you'll get a popup saying
                 "waiting for payloads". This means that everything has gone well.
@@ -66,12 +75,13 @@ if(!document.location.href.endswith("/index.html"))
         <p><i>This exploit <b>does</b> crash and hang. Sometimes you even have to retry 10 times to get the
                 jailbreak.</i></p>
         <p><i>Credits: @theflow for vulnerability disclosure, @ChendoChap for userland CFI bypass, @SpecterDev & @ChendoChap for various help,
-            @cheburek3000 for the physmem access technique & 4.50 offsets. 4.51 offsets have been provided by @MKBUHD.</i></p>
+            @cheburek3000 for the physmem access technique.</i></p>
+        <p><i><label for="spoiler">Offset credits (click to show spoiler):</label></i></p>
     </div>
     <div id="russian" class="language" style="display: none">
         <h3>ВНИМАТЕЛЬНО ПРОЧИТАЙТЕ ИНСТРУКЦИЮ ПРЕЖДЕ ЧЕМ ПРОДОЛЖАТЬ</h3>
         <p><b>Этот эксплоит загружает пейлоады в формате PLD (.bin) на PS5 с прошивкой 4.03. Другие прошивки и форматы НЕ поддерживаются.</b></p>
-        <p><i>ps5-kstuff поддерживает прошивки 4.03 и 4.50. Если у вас прошивка 4.50, <a href="ps5-kstuff.bin">скачайте пейлоад</a> и используйте другой хост.</i></p>
+        <p><i>ps5-kstuff поддерживает прошивки 3.00, 3.20, 3.21, 4.03, 4.50, 4.51. Если у вас прошивка, отличная от 4.03, <a href="ps5-kstuff.bin">скачайте пейлоад</a> и используйте другой хост.</i></p>
         <ol>
             <li>Нажмите на ссылку &laquo;JB+NETCAT&raquo;. В течение примерно 20 секунд появится уведомление
                 &laquo;waiting for payloads&raquo;. Это значит, что взлом сработал, и вы можете послать
@@ -89,9 +99,18 @@ if(!document.location.href.endswith("/index.html"))
         </ol>
         <p><i>Эксплойт <b>будет</b> крашиться и виснуть, иногда вообще только с 10 попытки заводится.</i></p>
         <p><i>Credits: @theflow &mdash; уязвимость ядра, @ChendoChap &mdash; обход CFI в пользовательском пространстве,
-            @SpecterDev и @ChendoChap &mdash; помощь по различным вопросам, @cheburek3000 &mdash; техника доступа к физической памяти и оффсеты для 4.50.
-              Оффсеты для 4.51 предоставил @MKBUHD.</i></p>
+            @SpecterDev и @ChendoChap &mdash; помощь по различным вопросам, @cheburek3000 &mdash; техника доступа к физической памяти.</i></p>
+        <p><i><label for="spoiler">Оффсеты предоставили (нажмите, чтобы показать спойлер):</label></i></p>
     </div>
+    <input id="spoiler" type="checkbox" />
+    <ul>
+        <li><i>3.00 &mdash; EchoStretch, zecoxao, embee</i></li>
+        <li><i>3.10 &mdash; zecoxao</i></li>
+        <li><i>3.20 &mdash; Sylntnyt</i></li>
+        <li><i>3.21 &mdash; Dusk2D4wn</i></li>
+        <li><i>4.50 &mdash; cheburek3000</i></li>
+        <li><i>4.51 &mdash; MKBUHD</i></li>
+    </ul>
     <div id="progress"></div>
 
 <a href="netcat.html">JB+NETCAT</a>
